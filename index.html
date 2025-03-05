@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookWorld | Exclusive Waitlist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #000;
+            --secondary-color: #fff;
+            --accent-color: #888;
+            --font-heading: 'Cormorant Garamond', serif;
+            --font-body: 'Montserrat', sans-serif;
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            font-weight: 300;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 clamp(20px, 5vw, 60px);
+            position: relative;
+        }
+        
+        header {
+            padding: 30px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+        
+        header.scrolled {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 15px 0;
+        }
+        
+        .logo {
+            font-family: var(--font-heading);
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding-left: clamp(20px, 5vw, 60px);
+        }
+        
+        .logo span {
+            font-style: italic;
+            opacity: 0.8;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 140px 0 60px;
+        }
+        
+        .glowing-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            mix-blend-mode: screen;
+            transition: all 2s ease-in-out;
+        }
+        
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: #fff;
+            top: -100px;
+            right: -100px;
+            animation: float 15s ease-in-out infinite alternate;
+        }
+        
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #aaa;
+            bottom: 10%;
+            left: -150px;
+            animation: float 12s ease-in-out infinite alternate-reverse;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 650px;
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(42px, 7vw, 72px);
+            line-height: 1.1;
+            margin-bottom: 24px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+        }
+        
+        h1 span {
+            font-style: italic;
+        }
+        
+        .tagline {
+            font-size: clamp(18px, 2.5vw, 24px);
+            margin-bottom: 40px;
+            font-weight: 300;
+            max-width: 560px;
+            letter-spacing: 0.01em;
+        }
+        
+        .faucet-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 36px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+            transition: var(--transition);
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        
+        .faucet-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            margin-bottom: 32px;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .faucet-counter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .faucet-counter h3 {
+            font-size: 20px;
+            font-weight: 400;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .progress-container {
+            flex: 1;
+            height: 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            overflow: hidden;
+            min-width: 200px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0; /* Set by JS */
+            background: linear-gradient(90deg, #fff, #888);
+            border-radius: 100px;
+            transition: width 2s cubic-bezier(0.17, 0.67, 0.16, 0.99);
+        }
+        
+        .counter-numbers {
+            min-width: 80px;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .form-container {
+            margin-bottom: 50px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .form-group label {
+            position: absolute;
+            left: 16px;
+            top: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+        
+        .form-group input:focus + label,
+        .form-group input:not(:placeholder-shown) + label {
+            top: -24px;
+            left: 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            color: var(--secondary-color);
+            font-family: var(--font-body);
+            font-size: 16px;
+            transition: var(--transition);
+            font-weight: 300;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        input::placeholder {
+            color: transparent;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.03em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-btn:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .submit-btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(32px, 5vw, 42px);
+            margin-bottom: 60px;
+            font-weight: 500;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: var(--transition);
+        }
+        
+        .section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .how-it-works {
+            padding: 100px 0;
+            position: relative;
+        }
+        
+        .process-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            position: relative;
+        }
+        
+        .process-step {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            border-radius: 16px;
+            position: relative;
+            transition: var(--transition);
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        
+        .process-step.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -24px;
+            left: 30px;
+            width: 48px;
+            height: 48px;
+            background: var(--primary-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .process-step h3 {
+            font-family: var(--font-heading);
+            font-size: 26px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .process-step p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .credits-section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .credit-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            transform: translateY(50px);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .credit-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .credit-icon {
+            font-size: 48px;
+            margin-bottom: 24px;
+        }
+        
+        .credit-title {
+            font-family: var(--font-heading);
+            font-size: 36px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        
+        .credit-description {
+            font-size: 18px;
+            margin-bottom: 30px;
+            max-width: 400px;
+        }
+        
+        .book-mockup {
+            position: relative;
+            margin: 80px auto;
+            max-width: 800px;
+            height: 600px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+        }
+        
+        .book {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateY(20deg);
+            width: 350px;
+            height: 500px;
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+        }
+        
+        .book-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #222, #000);
+            border-radius: 5px;
+            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 30px;
+            backface-visibility: hidden;
+            transform: rotateY(0deg) translateZ(15px);
+        }
+        
+        .book-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.2;
+            text-align: center;
+        }
+        
+        .book-author {
+            font-size: 16px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .book-spine {
+            position: absolute;
+            top: 0;
+            left: -15px;
+            width: 30px;
+            height: 100%;
+            background: #111;
+            transform: rotateY(90deg) translateZ(175px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+        }
+        
+        .spine-text {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 460px;
+        }
+        
+        .book-pages {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 0;
+            bottom: 5px;
+            background: #f8f8f8;
+            transform: rotateY(180deg);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            padding: 30px;
+            font-size: 14px;
+            text-align: justify;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .book:hover {
+            transform: translate(-50%, -50%) rotateY(180deg);
+        }
+        
+        .faucet-animation {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin: 50px 0;
+        }
+        
+        .faucet {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+        }
+        
+        .faucet-body {
+            position: absolute;
+            top: 0;
+            left: 40px;
+            width: 20px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .faucet-spout {
+            position: absolute;
+            top: 45px;
+            left: 10px;
+            width: 80px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+        }
+        
+        .faucet-handle {
+            position: absolute;
+            top: 20px;
+            right: 5px;
+            width: 25px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            transform-origin: right center;
+            transform: rotate(0deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .water-drop {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .book-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 100px;
+        }
+        
+        .book-stack {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        footer {
+            padding: 60px 0 40px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .footer-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 16px;
+            transition: var(--transition);
+            opacity: 0.7;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+        }
+        
+        .copyright {
+            width: 100%;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+        
+        .success-message {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .hero {
+                padding-top: 120px;
+            }
+            
+            .process-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .book {
+                width: 280px;
+                height: 400px;
+            }
+            
+            .book-spine {
+                transform: rotateY(90deg) translateZ(140px);
+            }
+            
+            .book-mockup {
+                height: 450px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .faucet-counter {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .counter-numbers {
+                text-align: center;
+            }
+            
+            .book {
+                width: 220px;
+                height: 320px;
+            }
+            
+            .book-spine {
+                transform: rotateY(90deg) translateZ(110px);
+            }
+            
+            .book-title {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glowing-orb orb-1"></div>
+    <div class="glowing-orb orb-2"></div>
+    
+    <header id="header">
+        <div class="logo">BOOK<span>WORLD</span></div>
+    </header>
+    
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Create <span>Bestseller-Worthy</span> Book Covers in Minutes</h1>
+                    <p class="tagline">Join our exclusive community of authors and creators. Limited to 100 members per Book Faucet.</p>
+                    
+                    <div class="faucet-container" id="faucet-container">
+                        <h2 class="faucet-title">Current Book Faucet Status</h2>
+                        <div class="faucet-counter">
+                            <h3>Members Accepted:</h3>
+                            <div class="progress-container">
+                                <div class="progress-bar" id="progress-bar"></div>
+                            </div>
+                            <div class="counter-numbers" id="counter-numbers">18/100</div>
+                        </div>
+                        
+                        <div class="form-container">
+                            <form id="waitlist-form">
+                                <div class="form-group">
+                                    <input type="text" id="name" placeholder=" " required>
+                                    <label for="name">Your Name</label>
+                                </div>
+                                <div class="form-group">
+                                    <input type="email" id="email" placeholder=" " required>
+                                    <label for="email">Your Email</label>
+                                </div>
+                                <button type="submit" class="submit-btn">Join the Waitlist</button>
+                            </form>
+                            <div class="success-message" id="success-message">
+                                <p>Thank you for joining our waitlist! We'll notify you when the next Book Faucet opens.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="how-it-works" id="how-it-works">
+            <div class="container">
+                <h2 class="section-title" id="how-title">How It Works</h2>
+                
+                <div class="process-container">
+                    <div class="process-step" id="step-1">
+                        <div class="step-number">1</div>
+                        <h3>Enter Your Book Details</h3>
+                        <p>Input your book title, author name, synopsis, and character descriptions into our intuitive interface.</p>
+                    </div>
+                    
+                    <div class="process-step" id="step-2">
+                        <div class="step-number">2</div>
+                        <h3>Generate Your Cover</h3>
+                        <p>Our advanced AI analyzes your inputs and creates a professionally designed, bestseller-worthy book cover in minutes.</p>
+                    </div>
+                    
+                    <div class="process-step" id="step-3">
+                        <div class="step-number">3</div>
+                        <h3>Download & Use</h3>
+                        <p>Download your unique book cover in high resolution. It's entirely yours to use however you wish — for publishing, marketing, or personal use.</p>
+                    </div>
+                </div>
+                
+                <div class="faucet-animation" id="faucet-animation">
+                    <div class="faucet">
+                        <div class="faucet-body"></div>
+                        <div class="faucet-spout"></div>
+                        <div class="faucet-handle" id="faucet-handle"></div>
+                    </div>
+                    <div class="book-container">
+                        <div class="book-stack" style="bottom: 0; opacity: 0.4;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="book-showcase">
+            <div class="container">
+                <div class="book-mockup" id="book-mockup">
+                    <div class="book">
+                        <div class="book-cover">
+                            <div></div>
+                            <div class="book-title">The Silent Echo</div>
+                            <div class="book-author">by Alexandra Rivers</div>
+                        </div>
+                        <div class="book-spine">
+                            <div class="spine-text">The Silent Echo · Alexandra Rivers</div>
+                        </div>
+                        <div class="book-pages">
+                            In the heart of the forgotten city, where shadows whispered secrets of the past, Emma discovered a letter that would change everything. Twenty years of silence were about to be broken...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="credits-section" id="credits-section">
+            <div class="container">
+                <h2 class="section-title" id="credits-title">Simple Pricing</h2>
+                
+                <div class="credit-card" id="credit-card">
+                    <div class="credit-icon">💎</div>
+                    <h3 class="credit-title">1 Credit = 1 Book Cover</h3>
+                    <p class="credit-description">Our straightforward pricing means you only pay for what you need. Each credit generates one professional, unique book cover.</p>
+                    <button class="submit-btn">Get Started</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">BOOKWORLD</div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">About</a>
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Contact</a>
+                </div>
+            </div>
+            <div class="copyright">&copy; 2025 BookWorld. All rights reserved.</div>
+        </div>
+    </footer>
+    
+    <script>
+        // Initialize animation on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Animate progress bar
+            setTimeout(() => {
+                const progressBar = document.getElementById('progress-bar');
+                progressBar.style.width = '18%';
+            }, 500);
+            
+            // Fade in faucet container
+            setTimeout(() => {
+                const faucetContainer = document.getElementById('faucet-container');
+                faucetContainer.style.opacity = '1';
+                faucetContainer.style.transform = 'translateY(0)';
+            }, 300);
+            
+            // Initialize GSAP and ScrollTrigger
+            initScrollAnimations();
+            
+            // Initialize faucet animation
+            initFaucetAnimation();
+            
+            // Header scroll effect
+            window.addEventListener('scroll', () => {
+                const header = document.getElementById('header');
+                if (window.scrollY > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        });
+        
+        // Form submission
+        document.getElementById('waitlist-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            // In a real implementation, you'd send this data to your server
+            console.log('Submitted:', { name, email });
+            
+            // Show success message
+            this.style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+        });
+        
+        // Scroll animations with GSAP
+        function initScrollAnimations() {
+            // How it works section
+            gsap.registerPlugin(ScrollTrigger);
+            
+            gsap.to('#how-title', {
+                scrollTrigger: {
+                    trigger: '#how-title',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                }
+            });
+            
+            gsap.to('#step-1', {
+                scrollTrigger: {
+                    trigger: '#step-1',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                },
+                delay: 0.1
+            });
+            
+            gsap.to('#step-2', {
+                scrollTrigger: {
+                    trigger: '#step-2',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                },
+                delay: 0.3
+            });
+            
+            gsap.to('#step-3', {
+                scrollTrigger: {
+                    trigger: '#step-3',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                },
+                delay: 0.5
+            });
+            
+            // Credits section
+            gsap.to('#credits-title', {
+                scrollTrigger: {
+                    trigger: '#credits-title',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                }
+            });
+            
+            gsap.to('#credit-card', {
+                scrollTrigger: {
+                    trigger: '#credit-card',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                }
+            });
+            
+            // Book mockup animation
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: '#book-mockup',
+                    start: 'top 60%',
+                    end: 'bottom 40%',
+                    scrub: true
+                }
+            })
+            .to('.book', {
+                rotateY: 40,
+                duration: 2
+            })
+            .to('.book', {
+                rotateY: 0,
+                duration: 2
+            });
+        }
+        
+        // Faucet animation
+        function initFaucetAnimation() {
+            let drops = [];
+            const faucetHandle = document.getElementById('faucet-handle');
+            const animationContainer = document.getElementById('faucet-animation');
+            const bookContainer = animationContainer.querySelector('.book-container');
+            
+            // Create book stack elements
+            function createBookStack() {
+                for (let i = 1; i < 6; i++) {
+                    const book = document.createElement('div');
+                    book.className = 'book-stack';
+                    book.style.bottom = (i * 15) + 'px';
+                    book.style.opacity = 0;
+                    book.style.backgroundColor = `rgba(255, 255, 255, ${0.2 + (i * 0.05)})`;
+                    book.style.transform = 'scale(0.95)';
+                    book.style.zIndex = 10 - i;
+                    bookContainer.appendChild(book);
+                }
+            }
+            
+            createBookStack();
+            
+            // Start animation when it comes into view
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    startFaucetAnimation();
+                    observer.disconnect();
+                }
+            }, { threshold: 0.5 });
+            
+            observer.observe(animationContainer);
+            
+            function startFaucetAnimation() {
+                // Rotate handle to turn on faucet
+                setTimeout(() => {
+                    faucetHandle.style.transform = 'rotate(-45deg)';
+                    startWaterDrop();
+                }, 500);
+                
+                const bookStacks = bookContainer.querySelectorAll('.book-stack');
+                
+                // Animate book stacks appearing
+                setTimeout(() => {
+                    bookStacks.forEach((book, index) => {
+                        setTimeout(() => {
+                            book.style.opacity = 0.4 + (index * 0.1);
+                            book.style.transform = 'scale(1)';
+                        }, index * 300 + 1500);
+                    });
+                }, 1000);
+                
+                // Turn off faucet after animation completes
+                setTimeout(() => {
+                    faucetHandle.style.transform = 'rotate(0deg)';
+                }, 5000);
+            }
+            
+            function startWaterDrop() {
+                let dropInterval = setInterval(() => {
+                    createWaterDrop();
+                }, 300);
+                
+                setTimeout(() => {
+                    clearInterval(dropInterval);
+                }, 4500);
+            }
+            
+            function createWaterDrop() {
+                const drop = document.createElement('div');
+                drop.className = 'water-drop';
+                drop.style.width = '10px';
+                drop.style.height = '10px';
+                drop.style.left = '50px';
+                drop.style.top = '60px';
+                animationContainer.appendChild(drop);
+                drops.push(drop);
+                
+                // Animate drop falling
+                let posY = 60;
+                let opacity = 0.8;
+                let speed = 1;
+                
+                const animate = () => {
+                    if (posY >= 160) {
+                        // Hit the book pile
+                        animationContainer.removeChild(drop);
+                        drops = drops.filter(d => d !== drop);
+                        return;
+                    }
+                    
+                    posY += speed;
+                    speed += 0.2;
+                    opacity -= 0.004;
+                    
+                    drop.style.top = posY + 'px';
+                    drop.style.opacity = opacity;
+                    
+                    requestAnimationFrame(animate);
+                };
+                
+                // Start with drop appearing
+                gsap.to(drop, {
+                    opacity: 0.8,
+                    duration: 0.2,
+                    onComplete: animate
+                });
+            }
+        }
+    </script>
+</body>
+</html>
