@@ -3,20 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookWorld | Exclusive Waitlist</title>
+    <title>BookWorld | Revolutionary Book Cover Generation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
-            --primary-color: #000;
+            --primary-color: #0a0a0a;
             --secondary-color: #fff;
             --accent-color: #888;
+            --neon-white: rgba(255, 255, 255, 0.95);
+            --soft-white: rgba(255, 255, 255, 0.85);
+            --grey-accent: rgba(180, 180, 180, 0.8);
+            --highlight-glow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(255, 255, 255, 0.3);
             --font-heading: 'Cormorant Garamond', serif;
             --font-body: 'Montserrat', sans-serif;
-            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+            --smooth-shadow: 0 10px 50px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.15);
+            --shark-black: #0a0a0a;
+            --deep-black: #000000;
         }
         
         * {
@@ -41,8 +49,14 @@
             position: relative;
         }
         
+        .full-width {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+        }
+        
         header {
-            padding: 30px 0;
+            padding: 25px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -56,8 +70,9 @@
         }
         
         header.scrolled {
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
             padding: 15px 0;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
         }
         
         .logo {
@@ -66,6 +81,9 @@
             font-weight: 600;
             letter-spacing: 1px;
             padding-left: clamp(20px, 5vw, 60px);
+            position: relative;
+            display: flex;
+            align-items: center;
         }
         
         .logo span {
@@ -73,49 +91,65 @@
             opacity: 0.8;
         }
         
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: clamp(20px, 5vw, 60px);
+            width: 40px;
+            height: 2px;
+            background: var(--soft-white);
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+        
+        .logo:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            padding-right: clamp(20px, 5vw, 60px);
+        }
+        
+        .nav-link {
+            color: var(--soft-white);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
         .hero {
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             position: relative;
             overflow: hidden;
-            padding: 140px 0 60px;
+            padding: 180px 0 120px;
+            background-color: var(--shark-black);
         }
         
-        .glowing-orb {
+        .bg-canvas {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.15;
-            mix-blend-mode: screen;
-            transition: all 2s ease-in-out;
-        }
-        
-        .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: #fff;
-            top: -100px;
-            right: -100px;
-            animation: float 15s ease-in-out infinite alternate;
-        }
-        
-        .orb-2 {
-            width: 300px;
-            height: 300px;
-            background: #aaa;
-            bottom: 10%;
-            left: -150px;
-            animation: float 12s ease-in-out infinite alternate-reverse;
-        }
-        
-        @keyframes float {
-            0% {
-                transform: translate(0, 0);
-            }
-            100% {
-                transform: translate(50px, 50px);
-            }
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
         
         .hero-content {
@@ -131,10 +165,31 @@
             margin-bottom: 24px;
             font-weight: 600;
             letter-spacing: -0.03em;
+            opacity: 0;
+            transform: translateY(30px);
         }
         
         h1 span {
             font-style: italic;
+            display: inline-block;
+            position: relative;
+        }
+        
+        h1 span::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.8), rgba(255,255,255,0));
+            transform: scaleX(0);
+            transform-origin: right;
+        }
+        
+        h1.visible span::after {
+            transform: scaleX(1);
+            transition: transform 0.8s 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
         
         .tagline {
@@ -143,6 +198,61 @@
             font-weight: 300;
             max-width: 560px;
             letter-spacing: 0.01em;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .free-trial-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--neon-white), var(--soft-white));
+            color: var(--primary-color);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 30px;
+            box-shadow: var(--highlight-glow);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        
+        .free-trial-badge::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 1s;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .free-trial-badge:hover::before {
+            opacity: 0.4;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(0.8); opacity: 0.3; }
+        }
+        
+        .free-trial-badge span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .trial-text {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-weight: 500;
         }
         
         .faucet-container {
@@ -155,6 +265,20 @@
             transition: var(--transition);
             transform: translateY(30px);
             opacity: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--smooth-shadow);
+        }
+        
+        .faucet-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            z-index: -1;
         }
         
         .faucet-title {
@@ -183,18 +307,43 @@
         .progress-container {
             flex: 1;
             height: 16px;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
             border-radius: 100px;
             overflow: hidden;
             min-width: 200px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         .progress-bar {
             height: 100%;
             width: 0; /* Set by JS */
-            background: linear-gradient(90deg, #fff, #888);
+            background: linear-gradient(90deg, var(--neon-white), var(--grey-accent));
             border-radius: 100px;
             transition: width 2s cubic-bezier(0.17, 0.67, 0.16, 0.99);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.5) 50%, 
+                rgba(255,255,255,0) 100%);
+            animation: shine 2s infinite;
+            opacity: 0.6;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         .counter-numbers {
@@ -205,7 +354,7 @@
         }
         
         .form-container {
-            margin-bottom: 50px;
+            margin-bottom: 30px;
         }
         
         .form-group {
@@ -248,6 +397,7 @@
             outline: none;
             border-color: var(--secondary-color);
             background-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
         
         input::placeholder {
@@ -257,7 +407,7 @@
         .submit-btn {
             width: 100%;
             padding: 18px;
-            background-color: var(--secondary-color);
+            background: linear-gradient(135deg, var(--neon-white) 0%, var(--soft-white) 100%);
             color: var(--primary-color);
             border: none;
             border-radius: 8px;
@@ -268,11 +418,13 @@
             letter-spacing: 0.03em;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--highlight-glow);
+            text-transform: uppercase;
         }
         
         .submit-btn:hover {
-            background-color: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
         }
         
         .submit-btn:active {
@@ -282,55 +434,155 @@
         .submit-btn::after {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.4) 50%, 
+                rgba(255,255,255,0) 100%);
+            top: 0;
+            left: -100%;
+            transform: skewX(-15deg);
+            transition: all 0.5s ease;
         }
         
-        .submit-btn:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
-        }
-        
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0);
-                opacity: 0.5;
-            }
-            20% {
-                transform: scale(25, 25);
-                opacity: 0.3;
-            }
-            100% {
-                opacity: 0;
-                transform: scale(40, 40);
-            }
+        .submit-btn:hover::after {
+            left: 100%;
         }
         
         .section-title {
             font-family: var(--font-heading);
-            font-size: clamp(32px, 5vw, 42px);
+            font-size: clamp(32px, 5vw, 48px);
             margin-bottom: 60px;
             font-weight: 500;
             text-align: center;
             opacity: 0;
             transform: translateY(30px);
             transition: var(--transition);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%) translateY(30px);
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.8), rgba(255,255,255,0));
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.8s ease;
         }
         
         .section-title.visible {
             opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .section-title.visible::after {
+            transform: scaleX(1);
+            transition-delay: 0.3s;
+        }
+        
+        .faucet-showcase {
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: var(--deep-black);
+            padding: 100px 0;
+        }
+        
+        #faucet-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .faucet-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            max-width: 800px;
+            padding: 0 20px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: var(--transition);
+        }
+        
+        .faucet-content.visible {
+            opacity: 1;
             transform: translateY(0);
         }
         
+        .faucet-heading {
+            font-family: var(--font-heading);
+            font-size: clamp(36px, 7vw, 64px);
+            margin-bottom: 30px;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        
+        .faucet-subheading {
+            font-size: clamp(18px, 3vw, 24px);
+            margin-bottom: 40px;
+            font-weight: 300;
+            max-width: 700px;
+            opacity: 0.9;
+        }
+        
+        .faucet-controls {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .faucet-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--secondary-color);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+        
+        .faucet-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .faucet-control-hint {
+            font-size: 14px;
+            opacity: 0.6;
+            margin-top: 10px;
+        }
+        
         .how-it-works {
-            padding: 100px 0;
+            padding: 150px 0;
             position: relative;
+            z-index: 1;
+            background-color: var(--shark-black);
         }
         
         .process-container {
@@ -349,11 +601,29 @@
             transition: var(--transition);
             transform: translateY(50px);
             opacity: 0;
+            overflow: hidden;
+            box-shadow: var(--smooth-shadow);
+        }
+        
+        .process-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.5), rgba(255,255,255,0));
+            transform: translateX(-100%);
+            transition: transform 1s ease;
         }
         
         .process-step.visible {
             transform: translateY(0);
             opacity: 1;
+        }
+        
+        .process-step.visible::before {
+            transform: translateX(100%);
         }
         
         .step-number {
@@ -363,7 +633,7 @@
             width: 48px;
             height: 48px;
             background: var(--primary-color);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -371,6 +641,8 @@
             font-family: var(--font-heading);
             font-size: 24px;
             font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
         }
         
         .process-step h3 {
@@ -386,27 +658,272 @@
             line-height: 1.6;
         }
         
-        .credits-section {
-            padding: 80px 0;
+        .process-note {
+            margin-top: 60px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border-left: 3px solid var(--grey-accent);
+            opacity: 0;
+            transform: translateY(30px);
+            box-shadow: var(--smooth-shadow);
+        }
+        
+        .process-note.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.8s 0.6s ease;
+        }
+        
+        .process-note h4 {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .process-note ul {
+            list-style-type: none;
+            padding-left: 5px;
+        }
+        
+        .process-note li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+        }
+        
+        .process-note li::before {
+            content: '•';
+            position: absolute;
+            left: 5px;
+            color: var(--grey-accent);
+            font-size: 20px;
+        }
+        
+        .pricing-section {
+            padding: 150px 0;
             position: relative;
             overflow: hidden;
+            background: linear-gradient(to bottom, var(--shark-black), var(--deep-black), var(--shark-black));
+        }
+        
+        .pricing-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 50px;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .pricing-tabs.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.8s 0.3s ease;
+        }
+        
+        .pricing-tab {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .pricing-tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .pricing-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .pricing-content {
+            position: relative;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.5s ease;
+            max-height: 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .pricing-content.active {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 2000px;
+            transition: all 0.8s 0.3s ease;
+            display: block;
+        }
+        
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.4s ease;
+            height: 100%;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            box-shadow: var(--smooth-shadow);
+        }
+        
+        .pricing-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.3), rgba(255,255,255,0));
+        }
+        
+        .pricing-card.popular::before {
+            background: linear-gradient(90deg, rgba(255,255,255,0), var(--neon-white), rgba(255,255,255,0));
+            height: 8px;
+        }
+        
+        .pricing-name {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .popular-tag {
+            position: absolute;
+            top: -20px;
+            right: -15px;
+            background: var(--neon-white);
+            color: var(--primary-color);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 15px;
+            border-radius: 20px;
+            transform: rotate(3deg);
+            box-shadow: var(--highlight-glow);
+        }
+        
+        .pricing-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            margin-bottom: 25px;
+            flex-grow: 1;
+        }
+        
+        .pricing-price {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #ffffff, #cccccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .pricing-details {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .pricing-btn {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: var(--secondary-color);
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .pricing-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .pricing-card.popular .pricing-btn {
+            background: linear-gradient(135deg, var(--neon-white) 0%, var(--soft-white) 100%);
+            color: var(--primary-color);
+            border: none;
+            box-shadow: var(--highlight-glow);
+            font-weight: 600;
+        }
+        
+        .pricing-card.popular .pricing-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+        }
+        
+        .credit-section {
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(20, 20, 20, 0.7), var(--shark-black));
         }
         
         .credit-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 40px;
+            border-radius: 20px;
+            padding: 60px 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            max-width: 500px;
+            max-width: 800px;
             margin: 0 auto;
             backdrop-filter: blur(10px);
             transform: translateY(50px);
             opacity: 0;
             transition: var(--transition);
+            box-shadow: var(--smooth-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .credit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent 70%);
+            z-index: -1;
         }
         
         .credit-card.visible {
@@ -415,240 +932,79 @@
         }
         
         .credit-icon {
-            font-size: 48px;
-            margin-bottom: 24px;
+            font-size: 64px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .credit-icon::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
         }
         
         .credit-title {
             font-family: var(--font-heading);
-            font-size: 36px;
-            margin-bottom: 16px;
+            font-size: 42px;
+            margin-bottom: 25px;
             font-weight: 600;
+            line-height: 1.2;
         }
         
         .credit-description {
             font-size: 18px;
-            margin-bottom: 30px;
-            max-width: 400px;
+            margin-bottom: 40px;
+            max-width: 650px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
         }
         
-        .book-mockup {
-            position: relative;
-            margin: 80px auto;
-            max-width: 800px;
-            height: 600px;
-            perspective: 1200px;
-            transform-style: preserve-3d;
-        }
-        
-        .book {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotateY(20deg);
-            width: 350px;
-            height: 500px;
-            transform-style: preserve-3d;
-            transition: transform 1s ease;
-        }
-        
-        .book-cover {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, #222, #000);
-            border-radius: 5px;
-            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 40px 30px;
-            backface-visibility: hidden;
-            transform: rotateY(0deg) translateZ(15px);
-        }
-        
-        .book-title {
-            font-family: var(--font-heading);
-            font-size: 28px;
-            font-weight: 600;
-            line-height: 1.2;
-            text-align: center;
-        }
-        
-        .book-author {
-            font-size: 16px;
-            text-align: center;
-            opacity: 0.8;
-        }
-        
-        .book-spine {
-            position: absolute;
-            top: 0;
-            left: -15px;
-            width: 30px;
-            height: 100%;
-            background: #111;
-            transform: rotateY(90deg) translateZ(175px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 5px;
-        }
-        
-        .spine-text {
-            font-family: var(--font-heading);
+        .trial-btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, var(--neon-white) 0%, var(--soft-white) 100%);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
             font-size: 18px;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-height: 460px;
-        }
-        
-        .book-pages {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 0;
-            bottom: 5px;
-            background: #f8f8f8;
-            transform: rotateY(180deg);
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            padding: 30px;
-            font-size: 14px;
-            text-align: justify;
-            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .book:hover {
-            transform: translate(-50%, -50%) rotateY(180deg);
-        }
-        
-        .faucet-animation {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            margin: 50px 0;
-        }
-        
-        .faucet {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 100px;
-        }
-        
-        .faucet-body {
-            position: absolute;
-            top: 0;
-            left: 40px;
-            width: 20px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 5px 5px 0 0;
-        }
-        
-        .faucet-spout {
-            position: absolute;
-            top: 45px;
-            left: 10px;
-            width: 80px;
-            height: 15px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 5px;
-        }
-        
-        .faucet-handle {
-            position: absolute;
-            top: 20px;
-            right: 5px;
-            width: 25px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 5px;
-            transform-origin: right center;
-            transform: rotate(0deg);
-            transition: transform 0.5s ease;
-        }
-        
-        .water-drop {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            opacity: 0;
-        }
-        
-        .book-container {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 100px;
-        }
-        
-        .book-stack {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 80px;
-            height: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-        
-        footer {
-            padding: 60px 0 40px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 30px;
-        }
-        
-        .footer-logo {
-            font-family: var(--font-heading);
-            font-size: 24px;
             font-weight: 600;
-        }
-        
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
-        
-        .footer-link {
-            color: var(--secondary-color);
-            text-decoration: none;
-            font-size: 16px;
+            cursor: pointer;
             transition: var(--transition);
-            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: var(--highlight-glow);
+            position: relative;
+            overflow: hidden;
         }
         
-        .footer-link:hover {
-            opacity: 1;
+        .trial-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
         }
         
-        .copyright {
+        .trial-btn::after {
+            content: '';
+            position: absolute;
             width: 100%;
-            text-align: center;
-            margin-top: 40px;
-            font-size: 14px;
-            opacity: 0.6;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.4) 50%, 
+                rgba(255,255,255,0) 100%);
+            top: 0;
+            left: -100%;
+            transform: skewX(-15deg);
+            transition: all 0.5s ease;
+        }
+        
+        .trial-btn:hover::after {
+            left: 100%;
         }
         
         .success-message {
@@ -659,50 +1015,131 @@
             border-radius: 8px;
             text-align: center;
             margin-top: 20px;
+            box-shadow: var(--smooth-shadow);
         }
         
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .waitlist-message {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: var(--smooth-shadow);
+        }
+        
+        footer {
+            padding: 60px 0 40px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            background: linear-gradient(to top, var(--deep-black), var(--shark-black));
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 25%;
+            width: 50%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.5), rgba(255,255,255,0));
+        }
+        
+        .footer-links {
+            margin: 20px 0;
+        }
+        
+        .footer-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            transition: var(--transition);
+            padding: 8px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        .copyright {
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.5;
+            margin-top: 30px;
         }
         
         /* Responsive styles */
+        @media (max-width: 992px) {
+            .hero {
+                padding: 160px 0 100px;
+            }
+            
+            .credit-title {
+                font-size: 36px;
+            }
+            
+            .credit-description {
+                font-size: 16px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .hero {
-                padding-top: 120px;
+                padding: 140px 0 80px;
             }
             
             .process-container {
                 grid-template-columns: 1fr;
             }
             
-            .book {
-                width: 280px;
-                height: 400px;
+            .pricing-container {
+                grid-template-columns: 1fr;
+                max-width: 450px;
+                margin: 0 auto;
             }
             
-            .book-spine {
-                transform: rotateY(90deg) translateZ(140px);
+            .credit-card {
+                padding: 40px 25px;
             }
             
-            .book-mockup {
-                height: 450px;
+            .faucet-heading {
+                font-size: clamp(28px, 7vw, 42px);
             }
             
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
+            .faucet-subheading {
+                font-size: clamp(16px, 3vw, 20px);
             }
         }
         
         @media (max-width: 480px) {
+            .hero {
+                padding: 120px 0 60px;
+            }
+            
             .faucet-counter {
                 flex-direction: column;
                 align-items: stretch;
@@ -712,35 +1149,50 @@
                 text-align: center;
             }
             
-            .book {
-                width: 220px;
-                height: 320px;
+            .pricing-tabs {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
             }
             
-            .book-spine {
-                transform: rotateY(90deg) translateZ(110px);
+            .pricing-tab {
+                width: 80%;
+                text-align: center;
             }
             
-            .book-title {
-                font-size: 22px;
+            .credit-title {
+                font-size: 28px;
+            }
+            
+            .credit-description {
+                font-size: 15px;
+            }
+            
+            .free-trial-badge {
+                padding: 10px 15px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="glowing-orb orb-1"></div>
-    <div class="glowing-orb orb-2"></div>
-    
     <header id="header">
         <div class="logo">BOOK<span>WORLD</span></div>
+        <div class="nav-links">
+            <a href="#booknote" class="nav-link">BookNote</a>
+        </div>
     </header>
     
     <main>
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
-                    <h1>Create <span>Bestseller-Worthy</span> Book Covers in Minutes</h1>
-                    <p class="tagline">Join our exclusive community of authors and creators. Limited to 100 members per Book Faucet.</p>
+                    <h1 id="hero-title">Create <span>Bestseller-Worthy</span> Book Covers in Minutes</h1>
+                    <div class="free-trial-badge" id="free-trial">
+                        <div class="trial-text">LIMITED TIME OFFER</div>
+                        <span>Try 2 FREE Book Cover Generations</span>
+                    </div>
+                    <p class="tagline" id="hero-tagline">Join our exclusive community of authors and creators. Professional book covers at a fraction of the cost in just over a minute.</p>
                     
                     <div class="faucet-container" id="faucet-container">
                         <h2 class="faucet-title">Current Book Faucet Status</h2>
@@ -749,7 +1201,7 @@
                             <div class="progress-container">
                                 <div class="progress-bar" id="progress-bar"></div>
                             </div>
-                            <div class="counter-numbers" id="counter-numbers">18/100</div>
+                            <div class="counter-numbers" id="counter-numbers">0/100</div>
                         </div>
                         
                         <div class="form-container">
@@ -762,13 +1214,30 @@
                                     <input type="email" id="email" placeholder=" " required>
                                     <label for="email">Your Email</label>
                                 </div>
-                                <button type="submit" class="submit-btn">Join the Waitlist</button>
+                                <button type="submit" class="submit-btn">Join the Faucet</button>
                             </form>
                             <div class="success-message" id="success-message">
-                                <p>Thank you for joining our waitlist! We'll notify you when the next Book Faucet opens.</p>
+                                <p>Congratulations! You've secured your spot in our Book Faucet. You'll receive access details shortly.</p>
+                            </div>
+                            <div class="waitlist-message" id="waitlist-message">
+                                <p>Thank you for your interest! The current Book Faucet is full, but you've been added to our waitlist. We'll notify you when a spot becomes available.</p>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="faucet-showcase" id="faucet-showcase">
+            <canvas id="faucet-canvas"></canvas>
+            
+            <div class="faucet-content" id="faucet-content">
+                <h2 class="faucet-heading">The BookWorld Faucet System</h2>
+                <p class="faucet-subheading">Our revolutionary Book Faucet technology delivers a continuous stream of professionally designed covers, flowing directly from our AI to your publishing projects.</p>
+                
+                <div class="faucet-controls">
+                    <button class="faucet-button" id="faucet-control">Activate Faucet</button>
+                    <span class="faucet-control-hint">Scroll down to learn more</span>
                 </div>
             </div>
         </section>
@@ -781,105 +1250,180 @@
                     <div class="process-step" id="step-1">
                         <div class="step-number">1</div>
                         <h3>Enter Your Book Details</h3>
-                        <p>Input your book title, author name, synopsis, and character descriptions into our intuitive interface.</p>
+                        <p>Input your book title, author name, synopsis, and character descriptions into our intuitive interface. This information helps our AI understand the essence of your book and create a cover that truly represents your story.</p>
                     </div>
                     
                     <div class="process-step" id="step-2">
                         <div class="step-number">2</div>
                         <h3>Generate Your Cover</h3>
-                        <p>Our advanced AI analyzes your inputs and creates a professionally designed, bestseller-worthy book cover in minutes.</p>
+                        <p>Our advanced AI analyzes your inputs and creates a professionally designed, bestseller-worthy book cover in just over a minute. No more waiting days for design revisions or paying hundreds for multiple concepts.</p>
                     </div>
                     
                     <div class="process-step" id="step-3">
                         <div class="step-number">3</div>
                         <h3>Download & Use</h3>
-                        <p>Download your unique book cover in high resolution. It's entirely yours to use however you wish — for publishing, marketing, or personal use.</p>
+                        <p>Download your unique book cover in high resolution. It's entirely yours to use however you wish — for publishing, marketing, or personal use. Simple customization options allow for perfect fine-tuning.</p>
                     </div>
                 </div>
                 
-                <div class="faucet-animation" id="faucet-animation">
-                    <div class="faucet">
-                        <div class="faucet-body"></div>
-                        <div class="faucet-spout"></div>
-                        <div class="faucet-handle" id="faucet-handle"></div>
+                <div class="process-note" id="process-note">
+                    <h4>Important Notes:</h4>
+                    <ul>
+                        <li>Since this is AI-generated, some covers may contain random text or symbols.</li>
+                        <li>These can be easily removed by uploading the cover to Canva, using the Magic Erase tool to delete unwanted text.</li>
+                        <li>Misspellings can also be corrected in Canva using the Magic Text tool.</li>
+                        <li>This process ensures that authors get a fast, affordable, and customizable book cover solution.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="pricing-section" id="pricing-section">
+            <div class="container">
+                <h2 class="section-title" id="pricing-title">Simple Pricing</h2>
+                
+                <div class="pricing-tabs" id="pricing-tabs">
+                    <div class="pricing-tab active" data-tab="individual">Individual Authors</div>
+                    <div class="pricing-tab" data-tab="publisher">Publishers</div>
+                </div>
+                
+                <div class="pricing-content active" id="individual-pricing">
+                    <div class="pricing-container">
+                        <div class="pricing-card" id="price-1">
+                            <div class="pricing-name">Starter Package</div>
+                            <div class="pricing-description">Perfect for new authors testing the service</div>
+                            <div class="pricing-price">$7.99</div>
+                            <div class="pricing-details">4 credits ($2.00/credit)</div>
+                            <a href="#" class="pricing-btn">Get Started</a>
+                        </div>
+                        
+                        <div class="pricing-card popular" id="price-2">
+                            <div class="popular-tag">Best Value</div>
+                            <div class="pricing-name">Author Package</div>
+                            <div class="pricing-description">Best value for regular users</div>
+                            <div class="pricing-price">$14.99</div>
+                            <div class="pricing-details">10 credits ($1.50/credit)</div>
+                            <a href="#" class="pricing-btn">Choose Plan</a>
+                        </div>
+                        
+                        <div class="pricing-card" id="price-3">
+                            <div class="pricing-name">Pro Author</div>
+                            <div class="pricing-description">For authors with multiple books</div>
+                            <div class="pricing-price">$29.99</div>
+                            <div class="pricing-details">25 credits ($1.20/credit)</div>
+                            <a href="#" class="pricing-btn">Choose Plan</a>
+                        </div>
+                        
+                        <div class="pricing-card" id="price-4">
+                            <div class="pricing-name">Series Author</div>
+                            <div class="pricing-description">Ideal for series or multiple books per year</div>
+                            <div class="pricing-price">$59.99</div>
+                            <div class="pricing-details">60 credits ($1.00/credit)</div>
+                            <a href="#" class="pricing-btn">Choose Plan</a>
+                        </div>
                     </div>
-                    <div class="book-container">
-                        <div class="book-stack" style="bottom: 0; opacity: 0.4;"></div>
+                </div>
+                
+                <div class="pricing-content" id="publisher-pricing">
+                    <div class="pricing-container">
+                        <div class="pricing-card" id="pub-price-1">
+                            <div class="pricing-name">Small Publisher</div>
+                            <div class="pricing-description">For indie publishers managing multiple authors</div>
+                            <div class="pricing-price">$269.99</div>
+                            <div class="pricing-details">300 credits ($0.90/credit)</div>
+                            <a href="#" class="pricing-btn">Get Started</a>
+                        </div>
+                        
+                        <div class="pricing-card" id="pub-price-2">
+                            <div class="pricing-name">Mid-Size Publisher</div>
+                            <div class="pricing-description">Great for publishing imprints and established presses</div>
+                            <div class="pricing-price">$399.99</div>
+                            <div class="pricing-details">500 credits ($0.80/credit)</div>
+                            <a href="#" class="pricing-btn">Choose Plan</a>
+                        </div>
+                        
+                        <div class="pricing-card popular" id="pub-price-3">
+                            <div class="popular-tag">Best Value</div>
+                            <div class="pricing-name">Enterprise Publisher</div>
+                            <div class="pricing-description">For professional publishers with extensive catalogs</div>
+                            <div class="pricing-price">$675.00</div>
+                            <div class="pricing-details">900 credits ($0.75/credit)</div>
+                            <a href="#" class="pricing-btn">Choose Plan</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
         
-        <section class="book-showcase">
+        <section class="credit-section" id="credit-section">
             <div class="container">
-                <div class="book-mockup" id="book-mockup">
-                    <div class="book">
-                        <div class="book-cover">
-                            <div></div>
-                            <div class="book-title">The Silent Echo</div>
-                            <div class="book-author">by Alexandra Rivers</div>
-                        </div>
-                        <div class="book-spine">
-                            <div class="spine-text">The Silent Echo · Alexandra Rivers</div>
-                        </div>
-                        <div class="book-pages">
-                            In the heart of the forgotten city, where shadows whispered secrets of the past, Emma discovered a letter that would change everything. Twenty years of silence were about to be broken...
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section class="credits-section" id="credits-section">
-            <div class="container">
-                <h2 class="section-title" id="credits-title">Simple Pricing</h2>
-                
                 <div class="credit-card" id="credit-card">
-                    <div class="credit-icon">💎</div>
-                    <h3 class="credit-title">1 Credit = 1 Book Cover</h3>
-                    <p class="credit-description">Our straightforward pricing means you only pay for what you need. Each credit generates one professional, unique book cover.</p>
-                    <button class="submit-btn">Get Started</button>
+                    <div class="credit-icon">✨</div>
+                    <h3 class="credit-title">Save Hundreds on Book Cover Design</h3>
+                    <p class="credit-description">A professionally designed book cover typically costs between $100 and $800 and takes several days to complete. With BookWorld, authors can generate completely original book covers in just over a minute—saving time and money while still getting high-quality results. Our AI technology understands the nuances of genre, mood, and marketability to create covers that help your books stand out.</p>
+                    <button class="trial-btn">Start Your Free Trial</button>
                 </div>
             </div>
         </section>
     </main>
     
-    <footer>
+    <footer id="booknote">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">BOOKWORLD</div>
                 <div class="footer-links">
-                    <a href="#" class="footer-link">About</a>
-                    <a href="#" class="footer-link">Privacy Policy</a>
-                    <a href="#" class="footer-link">Terms of Service</a>
-                    <a href="#" class="footer-link">Contact</a>
+                    <a href="#booknote" class="footer-link">BookNote</a>
                 </div>
+                <div class="copyright">&copy; 2025 BookWorld. All rights reserved.</div>
             </div>
-            <div class="copyright">&copy; 2025 BookWorld. All rights reserved.</div>
         </div>
     </footer>
     
     <script>
+        // API endpoint for saving sign-ups (replace with your actual endpoint)
+        const API_ENDPOINT = '/api/signups'; // Update this with your actual API endpoint
+        
+        // Current member count
+        let memberCount = 0;
+        const MEMBER_LIMIT = 100;
+        
         // Initialize animation on load
         window.addEventListener('DOMContentLoaded', () => {
-            // Animate progress bar
+            // Animate hero elements
             setTimeout(() => {
-                const progressBar = document.getElementById('progress-bar');
-                progressBar.style.width = '18%';
-            }, 500);
+                document.getElementById('hero-title').style.opacity = '1';
+                document.getElementById('hero-title').style.transform = 'translateY(0)';
+                document.getElementById('hero-title').classList.add('visible');
+            }, 300);
+            
+            setTimeout(() => {
+                document.getElementById('free-trial').style.opacity = '1';
+                document.getElementById('free-trial').style.transform = 'translateY(0)';
+            }, 600);
+            
+            setTimeout(() => {
+                document.getElementById('hero-tagline').style.opacity = '1';
+                document.getElementById('hero-tagline').style.transform = 'translateY(0)';
+            }, 900);
             
             // Fade in faucet container
             setTimeout(() => {
                 const faucetContainer = document.getElementById('faucet-container');
                 faucetContainer.style.opacity = '1';
                 faucetContainer.style.transform = 'translateY(0)';
-            }, 300);
+            }, 1200);
+            
+            // Fetch current signup count from backend
+            fetchSignupCount();
             
             // Initialize GSAP and ScrollTrigger
             initScrollAnimations();
             
-            // Initialize faucet animation
-            initFaucetAnimation();
+            // Initialize faucet showcase animation
+            initFaucetShowcase();
+            
+            // Initialize pricing tabs
+            initPricingTabs();
             
             // Header scroll effect
             window.addEventListener('scroll', () => {
@@ -892,6 +1436,363 @@
             });
         });
         
+        // Initialize Faucet Showcase
+        function initFaucetShowcase() {
+            const canvas = document.getElementById('faucet-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            
+            // Set canvas dimensions
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            
+            window.addEventListener('resize', resize);
+            resize();
+            
+            // Faucet elements - adjusted positioning to not overlap with text
+            const faucet = {
+                x: width / 2,
+                y: height * 0.15, // Positioned higher
+                width: 60,
+                height: 150,
+                color: 'rgba(220, 220, 220, 0.9)',
+                spoutWidth: 120,
+                spoutHeight: 30,
+                spoutY: height * 0.15 + 120, // Adjusted based on new y
+                active: false
+            };
+            
+            // Water particles
+            const particles = [];
+            const maxParticles = 200;
+            
+            // Book covers
+            const books = [];
+            const maxBooks = 10;
+            
+            // Create gradient pool - positioned lower to avoid text overlap
+            const waterPool = {
+                x: width / 2 - 200,
+                y: height * 0.6, // Positioned lower to avoid text overlap
+                width: 400,
+                height: 150,
+                color: 'rgba(255, 255, 255, 0.1)',
+                ripples: []
+            };
+            
+            // Make faucet content visible
+            document.getElementById('faucet-content').classList.add('visible');
+            
+            // Faucet control button
+            document.getElementById('faucet-control').addEventListener('click', function() {
+                faucet.active = !faucet.active;
+                this.textContent = faucet.active ? 'Deactivate Faucet' : 'Activate Faucet';
+            });
+            
+            // Observer to activate faucet when in view
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    faucet.active = true;
+                    setTimeout(() => {
+                        faucet.active = false;
+                    }, 10000);
+                }
+            }, { threshold: 0.5 });
+            
+            observer.observe(document.getElementById('faucet-showcase'));
+            
+            // Create a water particle
+            function createParticle() {
+                if (particles.length >= maxParticles) return;
+                
+                const spoutCenter = faucet.x;
+                const startX = spoutCenter + (Math.random() * 30 - 15);
+                
+                particles.push({
+                    x: startX,
+                    y: faucet.spoutY,
+                    size: Math.random() * 6 + 3,
+                    speedY: Math.random() * 2 + 5,
+                    speedX: (startX - spoutCenter) * 0.05,
+                    opacity: Math.random() * 0.5 + 0.3,
+                    life: 1
+                });
+            }
+            
+            // Create a ripple in the water pool
+            function createRipple(x, y) {
+                waterPool.ripples.push({
+                    x,
+                    y,
+                    radius: 1,
+                    maxRadius: Math.random() * 30 + 20,
+                    opacity: 0.5,
+                    speed: Math.random() * 1 + 0.5
+                });
+            }
+            
+            // Create a book cover
+            function createBook() {
+                if (books.length >= maxBooks) return;
+                
+                const poolCenterX = waterPool.x + waterPool.width / 2;
+                const poolCenterY = waterPool.y + waterPool.height / 2;
+                const bookX = poolCenterX + (Math.random() * 160 - 80);
+                const bookY = poolCenterY + (Math.random() * 80 - 40);
+                
+                books.push({
+                    x: bookX,
+                    y: bookY,
+                    width: 60 + Math.random() * 20,
+                    height: 90 + Math.random() * 30,
+                    rotation: Math.random() * 0.4 - 0.2,
+                    opacity: 0,
+                    growSpeed: Math.random() * 0.02 + 0.01,
+                    maxOpacity: Math.random() * 0.4 + 0.4,
+                    color: `rgba(${Math.floor(Math.random() * 100 + 155)}, ${Math.floor(Math.random() * 100 + 155)}, ${Math.floor(Math.random() * 100 + 155)}, 0.8)`,
+                    floatPhase: Math.random() * Math.PI * 2
+                });
+            }
+            
+            // Animation loop
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background gradient - changed to solid shark black
+                ctx.fillStyle = 'rgba(10, 10, 10, 1)';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw water pool
+                ctx.beginPath();
+                ctx.fillStyle = waterPool.color;
+                ctx.rect(waterPool.x, waterPool.y, waterPool.width, waterPool.height);
+                ctx.fill();
+                
+                // Add subtle gradient to pool
+                const poolGradient = ctx.createLinearGradient(
+                    waterPool.x, 
+                    waterPool.y, 
+                    waterPool.x + waterPool.width, 
+                    waterPool.y + waterPool.height
+                );
+                poolGradient.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
+                poolGradient.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
+                ctx.fillStyle = poolGradient;
+                ctx.fill();
+                
+                // Draw pool border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw faucet body
+                ctx.beginPath();
+                ctx.fillStyle = faucet.color;
+                ctx.rect(faucet.x - faucet.width / 2, faucet.y, faucet.width, faucet.height);
+                ctx.fill();
+                
+                // Draw faucet spout
+                ctx.beginPath();
+                ctx.fillStyle = faucet.color;
+                ctx.rect(faucet.x - faucet.spoutWidth / 2, faucet.spoutY, faucet.spoutWidth, faucet.spoutHeight);
+                ctx.fill();
+                
+                // Create water particles if faucet is active
+                if (faucet.active) {
+                    for (let i = 0; i < 5; i++) {
+                        createParticle();
+                    }
+                    
+                    // Occasionally create a book
+                    if (Math.random() < 0.02) {
+                        createBook();
+                    }
+                }
+                
+                // Update and draw water particles
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.speedY += 0.2;
+                    p.life -= 0.003;
+                    
+                    // Check if particle has hit the water pool
+                    if (p.y > waterPool.y && 
+                        p.x > waterPool.x && 
+                        p.x < waterPool.x + waterPool.width) {
+                        // Create a ripple
+                        createRipple(p.x, waterPool.y);
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Remove particles that have gone off screen or lost life
+                    if (p.y > height || p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Draw particle
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity * p.life})`;
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Update and draw ripples
+                for (let i = waterPool.ripples.length - 1; i >= 0; i--) {
+                    const r = waterPool.ripples[i];
+                    r.radius += r.speed;
+                    r.opacity -= 0.01;
+                    
+                    if (r.radius >= r.maxRadius || r.opacity <= 0) {
+                        waterPool.ripples.splice(i, 1);
+                        continue;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${r.opacity})`;
+                    ctx.lineWidth = 1;
+                    ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // Update and draw books
+                const now = Date.now() / 1000;
+                for (let i = books.length - 1; i >= 0; i--) {
+                    const b = books[i];
+                    
+                    // Slowly increase opacity when new
+                    if (b.opacity < b.maxOpacity) {
+                        b.opacity += b.growSpeed;
+                    }
+                    
+                    // Floating animation
+                    const floatY = Math.sin(now + b.floatPhase) * 5;
+                    const floatX = Math.cos(now * 0.7 + b.floatPhase) * 3;
+                    
+                    // Slowly rise up and fade out after some time
+                    if (b.opacity >= b.maxOpacity) {
+                        b.y -= 0.3;
+                        b.x += Math.sin(now * 0.5 + b.floatPhase) * 0.2;
+                        
+                        if (b.y < waterPool.y - 150) {
+                            b.opacity -= 0.01;
+                        }
+                    }
+                    
+                    // Remove books that have faded out
+                    if (b.opacity <= 0) {
+                        books.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Draw book
+                    ctx.save();
+                    ctx.translate(b.x + floatX, b.y + floatY);
+                    ctx.rotate(b.rotation + Math.sin(now * 0.3 + b.floatPhase) * 0.05);
+                    
+                    // Book cover background
+                    ctx.fillStyle = b.color;
+                    ctx.globalAlpha = b.opacity;
+                    ctx.fillRect(-b.width / 2, -b.height / 2, b.width, b.height);
+                    
+                    // Book cover design (simple)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.fillRect(-b.width * 0.4, -b.height * 0.3, b.width * 0.8, b.height * 0.1);
+                    ctx.fillRect(-b.width * 0.3, b.height * 0.1, b.width * 0.6, b.height * 0.05);
+                    
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Start animation
+            animate();
+        }
+        
+        // Pricing tabs functionality - updated for better tab switching
+        function initPricingTabs() {
+            const tabs = document.querySelectorAll('.pricing-tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all pricing content
+                    document.querySelectorAll('.pricing-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show corresponding content
+                    const tabId = tab.dataset.tab;
+                    document.getElementById(tabId + '-pricing').classList.add('active');
+                    
+                    // Add visible class to all pricing cards in this tab
+                    setTimeout(() => {
+                        document.querySelectorAll(`#${tabId}-pricing .pricing-card`).forEach((card, index) => {
+                            setTimeout(() => {
+                                card.classList.add('visible');
+                            }, index * 100);
+                        });
+                    }, 100);
+                });
+            });
+            
+            // Initialize individual pricing cards as visible
+            document.querySelectorAll('#individual-pricing .pricing-card').forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('visible');
+                }, 300 + index * 100);
+            });
+        }
+        
+        // Fetch signup count from backend
+        function fetchSignupCount() {
+            fetch(API_ENDPOINT + '/count')
+                .then(response => response.json())
+                .then(data => {
+                    memberCount = data.count;
+                    updateCounterDisplay(memberCount);
+                })
+                .catch(error => {
+                    console.error('Error fetching signup count:', error);
+                    // If there's an error, assume 0 for safety
+                    memberCount = 0;
+                    updateCounterDisplay(memberCount);
+                });
+        }
+        
+        // Update counter display
+        function updateCounterDisplay(count) {
+            const progressBar = document.getElementById('progress-bar');
+            const counterNumbers = document.getElementById('counter-numbers');
+            
+            // Update counter text
+            counterNumbers.textContent = `${count}/${MEMBER_LIMIT}`;
+            
+            // Update progress bar width with animation
+            const percentage = (count / MEMBER_LIMIT) * 100;
+            setTimeout(() => {
+                progressBar.style.width = `${percentage}%`;
+            }, 500);
+            
+            // Update form button text based on availability
+            const submitBtn = document.querySelector('.submit-btn');
+            if (count >= MEMBER_LIMIT) {
+                submitBtn.textContent = 'Join the Waitlist';
+            }
+        }
+        
         // Form submission
         document.getElementById('waitlist-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -899,19 +1800,70 @@
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             
-            // In a real implementation, you'd send this data to your server
-            console.log('Submitted:', { name, email });
+            // Prepare data for API
+            const formData = {
+                name: name,
+                email: email,
+                timestamp: new Date().toISOString(),
+                isWaitlisted: memberCount >= MEMBER_LIMIT
+            };
             
-            // Show success message
-            this.style.display = 'none';
-            document.getElementById('success-message').style.display = 'block';
+            // Send data to backend
+            submitSignup(formData);
         });
+        
+        // Submit signup to backend API
+        function submitSignup(formData) {
+            fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                
+                // Update count with the one returned from the server
+                if (data.newCount !== undefined) {
+                    memberCount = data.newCount;
+                    updateCounterDisplay(memberCount);
+                }
+                
+                // Show appropriate message
+                if (data.isWaitlisted) {
+                    showWaitlistMessage();
+                } else {
+                    showSuccessMessage();
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('There was an error submitting your information. Please try again.');
+            });
+        }
+        
+        // Show success message
+        function showSuccessMessage() {
+            document.getElementById('waitlist-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('waitlist-message').style.display = 'none';
+        }
+        
+        // Show waitlist message
+        function showWaitlistMessage() {
+            document.getElementById('waitlist-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('waitlist-message').style.display = 'block';
+        }
         
         // Scroll animations with GSAP
         function initScrollAnimations() {
-            // How it works section
+            // Register ScrollTrigger
             gsap.registerPlugin(ScrollTrigger);
             
+            // How it works section
             gsap.to('#how-title', {
                 scrollTrigger: {
                     trigger: '#how-title',
@@ -947,15 +1899,32 @@
                 delay: 0.5
             });
             
-            // Credits section
-            gsap.to('#credits-title', {
+            gsap.to('#process-note', {
                 scrollTrigger: {
-                    trigger: '#credits-title',
+                    trigger: '#process-note',
+                    start: 'top 85%',
+                    toggleClass: 'visible'
+                }
+            });
+            
+            // Pricing section
+            gsap.to('#pricing-title', {
+                scrollTrigger: {
+                    trigger: '#pricing-title',
                     start: 'top 80%',
                     toggleClass: 'visible'
                 }
             });
             
+            gsap.to('#pricing-tabs', {
+                scrollTrigger: {
+                    trigger: '#pricing-tabs',
+                    start: 'top 80%',
+                    toggleClass: 'visible'
+                }
+            });
+            
+            // Credit card
             gsap.to('#credit-card', {
                 scrollTrigger: {
                     trigger: '#credit-card',
@@ -963,135 +1932,12 @@
                     toggleClass: 'visible'
                 }
             });
-            
-            // Book mockup animation
-            gsap.timeline({
-                scrollTrigger: {
-                    trigger: '#book-mockup',
-                    start: 'top 60%',
-                    end: 'bottom 40%',
-                    scrub: true
-                }
-            })
-            .to('.book', {
-                rotateY: 40,
-                duration: 2
-            })
-            .to('.book', {
-                rotateY: 0,
-                duration: 2
-            });
         }
         
-        // Faucet animation
-        function initFaucetAnimation() {
-            let drops = [];
-            const faucetHandle = document.getElementById('faucet-handle');
-            const animationContainer = document.getElementById('faucet-animation');
-            const bookContainer = animationContainer.querySelector('.book-container');
-            
-            // Create book stack elements
-            function createBookStack() {
-                for (let i = 1; i < 6; i++) {
-                    const book = document.createElement('div');
-                    book.className = 'book-stack';
-                    book.style.bottom = (i * 15) + 'px';
-                    book.style.opacity = 0;
-                    book.style.backgroundColor = `rgba(255, 255, 255, ${0.2 + (i * 0.05)})`;
-                    book.style.transform = 'scale(0.95)';
-                    book.style.zIndex = 10 - i;
-                    bookContainer.appendChild(book);
-                }
-            }
-            
-            createBookStack();
-            
-            // Start animation when it comes into view
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting) {
-                    startFaucetAnimation();
-                    observer.disconnect();
-                }
-            }, { threshold: 0.5 });
-            
-            observer.observe(animationContainer);
-            
-            function startFaucetAnimation() {
-                // Rotate handle to turn on faucet
-                setTimeout(() => {
-                    faucetHandle.style.transform = 'rotate(-45deg)';
-                    startWaterDrop();
-                }, 500);
-                
-                const bookStacks = bookContainer.querySelectorAll('.book-stack');
-                
-                // Animate book stacks appearing
-                setTimeout(() => {
-                    bookStacks.forEach((book, index) => {
-                        setTimeout(() => {
-                            book.style.opacity = 0.4 + (index * 0.1);
-                            book.style.transform = 'scale(1)';
-                        }, index * 300 + 1500);
-                    });
-                }, 1000);
-                
-                // Turn off faucet after animation completes
-                setTimeout(() => {
-                    faucetHandle.style.transform = 'rotate(0deg)';
-                }, 5000);
-            }
-            
-            function startWaterDrop() {
-                let dropInterval = setInterval(() => {
-                    createWaterDrop();
-                }, 300);
-                
-                setTimeout(() => {
-                    clearInterval(dropInterval);
-                }, 4500);
-            }
-            
-            function createWaterDrop() {
-                const drop = document.createElement('div');
-                drop.className = 'water-drop';
-                drop.style.width = '10px';
-                drop.style.height = '10px';
-                drop.style.left = '50px';
-                drop.style.top = '60px';
-                animationContainer.appendChild(drop);
-                drops.push(drop);
-                
-                // Animate drop falling
-                let posY = 60;
-                let opacity = 0.8;
-                let speed = 1;
-                
-                const animate = () => {
-                    if (posY >= 160) {
-                        // Hit the book pile
-                        animationContainer.removeChild(drop);
-                        drops = drops.filter(d => d !== drop);
-                        return;
-                    }
-                    
-                    posY += speed;
-                    speed += 0.2;
-                    opacity -= 0.004;
-                    
-                    drop.style.top = posY + 'px';
-                    drop.style.opacity = opacity;
-                    
-                    requestAnimationFrame(animate);
-                };
-                
-                // Start with drop appearing
-                gsap.to(drop, {
-                    opacity: 0.8,
-                    duration: 0.2,
-                    onComplete: animate
-                });
-            }
-        }
+        // Initialize free trial button
+        document.querySelector('.trial-btn').addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     </script>
 </body>
 </html>
