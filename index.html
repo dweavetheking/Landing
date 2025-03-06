@@ -10,8 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Add Supabase client library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Import Supabase with a specific version -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"></script>
     <style>
         :root {
             --primary-color: #0a0a0a;
@@ -1416,18 +1416,14 @@
     </footer>
     
     <script>
-        // Supabase configuration with your credentials
-        const SUPABASE_URL = 'https://slbzsdhezobhkkvhuxnc.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsYnpzZGhlem9iaGtrdmh1eG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMjM5NjYsImV4cCI6MjA1Njc5OTk2Nn0.SzxmyCPLXMEl68XtTlvuh6oMEaYJkOhkNO4h8PyOyGk';
-        const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
         // Member limit
         const MEMBER_LIMIT = 100;
         let memberCount = 0;
-        
+        let supabase = null;
+
         // Initialize animation and fetch data on load
-        window.addEventListener('DOMContentLoaded', async () => {
-            // Animate hero elements
+        window.addEventListener('DOMContentLoaded', () => {
+            // Animate hero elements immediately
             setTimeout(() => {
                 document.getElementById('hero-title').style.opacity = '1';
                 document.getElementById('hero-title').style.transform = 'translateY(0)';
@@ -1451,8 +1447,20 @@
                 faucetContainer.style.transform = 'translateY(0)';
             }, 1200);
             
-            // Fetch current signup count from Supabase
-            await fetchSignupCount();
+            // Try to initialize Supabase
+            try {
+                // Initialize Supabase using the global supabase object from the imported script
+                supabase = supabase.createClient(
+                    'https://slbzsdhezobhkkvhuxnc.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsYnpzZGhlem9iaGtrdmh1eG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMjM5NjYsImV4cCI6MjA1Njc5OTk2Nn0.SzxmyCPLXMEl68XtTlvuh6oMEaYJkOhkNO4h8PyOyGk'
+                );
+                // Fetch current signup count from Supabase
+                fetchSignupCount();
+            } catch (error) {
+                console.error("Error initializing Supabase:", error);
+                // Set a default display value
+                updateCounterDisplay(0);
+            }
             
             // Initialize faucet showcase animation
             initFaucetShowcase();
@@ -1477,6 +1485,8 @@
         // Fetch signup count from Supabase
         async function fetchSignupCount() {
             try {
+                if (!supabase) throw new Error("Supabase not initialized");
+                
                 // Count all non-waitlisted signups
                 const { count, error } = await supabase
                     .from('signups')
@@ -1489,9 +1499,8 @@
                 updateCounterDisplay(memberCount);
             } catch (error) {
                 console.error('Error fetching signup count:', error);
-                // If there's an error, assume 0 for safety
-                memberCount = 0;
-                updateCounterDisplay(memberCount);
+                // If there's an error, show a default value
+                updateCounterDisplay(0);
             }
         }
         
@@ -1536,6 +1545,8 @@
             const isWaitlisted = memberCount >= MEMBER_LIMIT;
             
             try {
+                if (!supabase) throw new Error("Supabase connection not available.");
+                
                 // Insert the signup into Supabase
                 const { data, error } = await supabase
                     .from('signups')
@@ -1569,7 +1580,13 @@
                 }
             } catch (error) {
                 console.error('Error submitting form:', error);
-                errorMessage.textContent = error.message || 'There was an error submitting your information. Please try again.';
+                
+                // Display a friendly error message
+                if (error.message) {
+                    errorMessage.textContent = error.message;
+                } else {
+                    errorMessage.textContent = 'There was an error submitting your information. Please try again.';
+                }
                 errorMessage.style.display = 'block';
                 submitBtn.disabled = false;
             } finally {
@@ -1596,6 +1613,8 @@
         // Initialize Faucet Showcase
         function initFaucetShowcase() {
             const canvas = document.getElementById('faucet-canvas');
+            if (!canvas) return; // Exit if canvas doesn't exist
+            
             const ctx = canvas.getContext('2d');
             let width, height;
             
@@ -1640,25 +1659,38 @@
             };
             
             // Make faucet content visible
-            document.getElementById('faucet-content').classList.add('visible');
+            const faucetContent = document.getElementById('faucet-content');
+            if (faucetContent) {
+                faucetContent.classList.add('visible');
+            }
             
             // Faucet control button
-            document.getElementById('faucet-control').addEventListener('click', function() {
-                faucet.active = !faucet.active;
-                this.textContent = faucet.active ? 'Deactivate Faucet' : 'Activate Faucet';
-            });
+            const faucetControl = document.getElementById('faucet-control');
+            if (faucetControl) {
+                faucetControl.addEventListener('click', function() {
+                    faucet.active = !faucet.active;
+                    this.textContent = faucet.active ? 'Deactivate Faucet' : 'Activate Faucet';
+                });
+            }
             
             // Observer to activate faucet when in view
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting) {
-                    faucet.active = true;
-                    setTimeout(() => {
-                        faucet.active = false;
-                    }, 10000);
+            try {
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        faucet.active = true;
+                        setTimeout(() => {
+                            faucet.active = false;
+                        }, 10000);
+                    }
+                }, { threshold: 0.5 });
+                
+                const faucetShowcase = document.getElementById('faucet-showcase');
+                if (faucetShowcase) {
+                    observer.observe(faucetShowcase);
                 }
-            }, { threshold: 0.5 });
-            
-            observer.observe(document.getElementById('faucet-showcase'));
+            } catch (error) {
+                console.error("IntersectionObserver error:", error);
+            }
             
             // Create a water particle
             function createParticle() {
@@ -1715,6 +1747,8 @@
             
             // Animation loop
             function animate() {
+                if (!canvas.parentNode) return; // Stop if canvas removed from DOM
+                
                 ctx.clearRect(0, 0, width, height);
                 
                 // Background gradient - changed to solid shark black
@@ -1892,16 +1926,19 @@
                     
                     // Show corresponding content
                     const tabId = tab.dataset.tab;
-                    document.getElementById(tabId + '-pricing').classList.add('active');
-                    
-                    // Add visible class to all pricing cards in this tab
-                    setTimeout(() => {
-                        document.querySelectorAll(`#${tabId}-pricing .pricing-card`).forEach((card, index) => {
-                            setTimeout(() => {
-                                card.classList.add('visible');
-                            }, index * 100);
-                        });
-                    }, 100);
+                    const tabContent = document.getElementById(tabId + '-pricing');
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                        
+                        // Add visible class to all pricing cards in this tab
+                        setTimeout(() => {
+                            document.querySelectorAll(`#${tabId}-pricing .pricing-card`).forEach((card, index) => {
+                                setTimeout(() => {
+                                    card.classList.add('visible');
+                                }, index * 100);
+                            });
+                        }, 100);
+                    }
                 });
             });
             
@@ -1915,84 +1952,121 @@
         
         // Scroll animations with GSAP
         function initScrollAnimations() {
-            // Register ScrollTrigger
-            gsap.registerPlugin(ScrollTrigger);
-            
-            // How it works section
-            gsap.to('#how-title', {
-                scrollTrigger: {
-                    trigger: '#how-title',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
+            try {
+                // Only initialize if GSAP is available
+                if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+                    console.warn('GSAP not available, skipping animations');
+                    return;
                 }
-            });
-            
-            gsap.to('#step-1', {
-                scrollTrigger: {
-                    trigger: '#step-1',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
-                },
-                delay: 0.1
-            });
-            
-            gsap.to('#step-2', {
-                scrollTrigger: {
-                    trigger: '#step-2',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
-                },
-                delay: 0.3
-            });
-            
-            gsap.to('#step-3', {
-                scrollTrigger: {
-                    trigger: '#step-3',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
-                },
-                delay: 0.5
-            });
-            
-            gsap.to('#process-note', {
-                scrollTrigger: {
-                    trigger: '#process-note',
-                    start: 'top 85%',
-                    toggleClass: 'visible'
+                
+                // Register ScrollTrigger
+                gsap.registerPlugin(ScrollTrigger);
+                
+                // How it works section
+                const howTitle = document.getElementById('how-title');
+                if (howTitle) {
+                    gsap.to('#how-title', {
+                        scrollTrigger: {
+                            trigger: '#how-title',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        }
+                    });
                 }
-            });
-            
-            // Pricing section
-            gsap.to('#pricing-title', {
-                scrollTrigger: {
-                    trigger: '#pricing-title',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
+                
+                const step1 = document.getElementById('step-1');
+                if (step1) {
+                    gsap.to('#step-1', {
+                        scrollTrigger: {
+                            trigger: '#step-1',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        },
+                        delay: 0.1
+                    });
                 }
-            });
-            
-            gsap.to('#pricing-tabs', {
-                scrollTrigger: {
-                    trigger: '#pricing-tabs',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
+                
+                const step2 = document.getElementById('step-2');
+                if (step2) {
+                    gsap.to('#step-2', {
+                        scrollTrigger: {
+                            trigger: '#step-2',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        },
+                        delay: 0.3
+                    });
                 }
-            });
-            
-            // Credit card
-            gsap.to('#credit-card', {
-                scrollTrigger: {
-                    trigger: '#credit-card',
-                    start: 'top 80%',
-                    toggleClass: 'visible'
+                
+                const step3 = document.getElementById('step-3');
+                if (step3) {
+                    gsap.to('#step-3', {
+                        scrollTrigger: {
+                            trigger: '#step-3',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        },
+                        delay: 0.5
+                    });
                 }
-            });
+                
+                const processNote = document.getElementById('process-note');
+                if (processNote) {
+                    gsap.to('#process-note', {
+                        scrollTrigger: {
+                            trigger: '#process-note',
+                            start: 'top 85%',
+                            toggleClass: 'visible'
+                        }
+                    });
+                }
+                
+                // Pricing section
+                const pricingTitle = document.getElementById('pricing-title');
+                if (pricingTitle) {
+                    gsap.to('#pricing-title', {
+                        scrollTrigger: {
+                            trigger: '#pricing-title',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        }
+                    });
+                }
+                
+                const pricingTabs = document.getElementById('pricing-tabs');
+                if (pricingTabs) {
+                    gsap.to('#pricing-tabs', {
+                        scrollTrigger: {
+                            trigger: '#pricing-tabs',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        }
+                    });
+                }
+                
+                // Credit card
+                const creditCard = document.getElementById('credit-card');
+                if (creditCard) {
+                    gsap.to('#credit-card', {
+                        scrollTrigger: {
+                            trigger: '#credit-card',
+                            start: 'top 80%',
+                            toggleClass: 'visible'
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error initializing ScrollTrigger animations:", error);
+            }
         }
         
         // Initialize free trial button
-        document.querySelector('.trial-btn').addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        const trialBtn = document.querySelector('.trial-btn');
+        if (trialBtn) {
+            trialBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
     </script>
 </body>
 </html>
