@@ -10,6 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Add Supabase client library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-color: #0a0a0a;
@@ -431,6 +433,12 @@
             transform: translateY(0);
         }
         
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
         .submit-btn::after {
             content: '';
             position: absolute;
@@ -448,6 +456,32 @@
         
         .submit-btn:hover::after {
             left: 100%;
+        }
+        
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            display: none;
+            background: rgba(255, 90, 90, 0.1);
+            border: 1px solid rgba(255, 90, 90, 0.3);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
         }
         
         .section-title {
@@ -1214,7 +1248,9 @@
                                     <input type="email" id="email" placeholder=" " required>
                                     <label for="email">Your Email</label>
                                 </div>
-                                <button type="submit" class="submit-btn">Join the Faucet</button>
+                                <button type="submit" class="submit-btn" id="submit-btn">Join the Faucet</button>
+                                <div class="spinner" id="spinner"></div>
+                                <div class="error-message" id="error-message"></div>
                             </form>
                             <div class="success-message" id="success-message">
                                 <p>Congratulations! You've secured your spot in our Book Faucet. You'll receive access details shortly.</p>
@@ -1380,15 +1416,17 @@
     </footer>
     
     <script>
-        // API endpoint for saving sign-ups (replace with your actual endpoint)
-        const API_ENDPOINT = '/api/signups'; // Update this with your actual API endpoint
+        // Supabase configuration with your credentials
+        const SUPABASE_URL = 'https://slbzsdhezobhkkvhuxnc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsYnpzZGhlem9iaGtrdmh1eG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMjM5NjYsImV4cCI6MjA1Njc5OTk2Nn0.SzxmyCPLXMEl68XtTlvuh6oMEaYJkOhkNO4h8PyOyGk';
+        const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // Current member count
-        let memberCount = 0;
+        // Member limit
         const MEMBER_LIMIT = 100;
+        let memberCount = 0;
         
-        // Initialize animation on load
-        window.addEventListener('DOMContentLoaded', () => {
+        // Initialize animation and fetch data on load
+        window.addEventListener('DOMContentLoaded', async () => {
             // Animate hero elements
             setTimeout(() => {
                 document.getElementById('hero-title').style.opacity = '1';
@@ -1413,17 +1451,17 @@
                 faucetContainer.style.transform = 'translateY(0)';
             }, 1200);
             
-            // Fetch current signup count from backend
-            fetchSignupCount();
-            
-            // Initialize GSAP and ScrollTrigger
-            initScrollAnimations();
+            // Fetch current signup count from Supabase
+            await fetchSignupCount();
             
             // Initialize faucet showcase animation
             initFaucetShowcase();
             
             // Initialize pricing tabs
             initPricingTabs();
+            
+            // Initialize GSAP and ScrollTrigger
+            initScrollAnimations();
             
             // Header scroll effect
             window.addEventListener('scroll', () => {
@@ -1435,6 +1473,125 @@
                 }
             });
         });
+        
+        // Fetch signup count from Supabase
+        async function fetchSignupCount() {
+            try {
+                // Count all non-waitlisted signups
+                const { count, error } = await supabase
+                    .from('signups')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_waitlisted', false);
+                
+                if (error) throw error;
+                
+                memberCount = count || 0;
+                updateCounterDisplay(memberCount);
+            } catch (error) {
+                console.error('Error fetching signup count:', error);
+                // If there's an error, assume 0 for safety
+                memberCount = 0;
+                updateCounterDisplay(memberCount);
+            }
+        }
+        
+        // Update counter display
+        function updateCounterDisplay(count) {
+            const progressBar = document.getElementById('progress-bar');
+            const counterNumbers = document.getElementById('counter-numbers');
+            
+            // Update counter text
+            counterNumbers.textContent = `${count}/${MEMBER_LIMIT}`;
+            
+            // Update progress bar width
+            const percentage = (count / MEMBER_LIMIT) * 100;
+            progressBar.style.width = `${percentage}%`;
+            
+            // Update form button text based on availability
+            const submitBtn = document.querySelector('.submit-btn');
+            if (count >= MEMBER_LIMIT) {
+                submitBtn.textContent = 'Join the Waitlist';
+            } else {
+                submitBtn.textContent = 'Join the Faucet';
+            }
+        }
+        
+        // Form submission
+        document.getElementById('waitlist-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const spinner = document.getElementById('spinner');
+            const errorMessage = document.getElementById('error-message');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Clear previous errors and show spinner
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            spinner.style.display = 'block';
+            submitBtn.disabled = true;
+            
+            // Determine if user should be waitlisted
+            const isWaitlisted = memberCount >= MEMBER_LIMIT;
+            
+            try {
+                // Insert the signup into Supabase
+                const { data, error } = await supabase
+                    .from('signups')
+                    .insert([
+                        { 
+                            name: name, 
+                            email: email, 
+                            is_waitlisted: isWaitlisted,
+                            timestamp: new Date().toISOString()
+                        }
+                    ])
+                    .select();
+                
+                if (error) {
+                    // Handle duplicate emails
+                    if (error.code === '23505') {
+                        throw new Error('This email has already been registered.');
+                    } else {
+                        throw error;
+                    }
+                }
+                
+                // Show appropriate message
+                if (isWaitlisted) {
+                    showWaitlistMessage();
+                } else {
+                    // Increment count only if not waitlisted
+                    memberCount++;
+                    updateCounterDisplay(memberCount);
+                    showSuccessMessage();
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                errorMessage.textContent = error.message || 'There was an error submitting your information. Please try again.';
+                errorMessage.style.display = 'block';
+                submitBtn.disabled = false;
+            } finally {
+                spinner.style.display = 'none';
+            }
+        });
+        
+        // Show success message
+        function showSuccessMessage() {
+            document.getElementById('waitlist-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('waitlist-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
+        // Show waitlist message
+        function showWaitlistMessage() {
+            document.getElementById('waitlist-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('waitlist-message').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+        }
         
         // Initialize Faucet Showcase
         function initFaucetShowcase() {
@@ -1754,108 +1911,6 @@
                     card.classList.add('visible');
                 }, 300 + index * 100);
             });
-        }
-        
-        // Fetch signup count from backend
-        function fetchSignupCount() {
-            fetch(API_ENDPOINT + '/count')
-                .then(response => response.json())
-                .then(data => {
-                    memberCount = data.count;
-                    updateCounterDisplay(memberCount);
-                })
-                .catch(error => {
-                    console.error('Error fetching signup count:', error);
-                    // If there's an error, assume 0 for safety
-                    memberCount = 0;
-                    updateCounterDisplay(memberCount);
-                });
-        }
-        
-        // Update counter display
-        function updateCounterDisplay(count) {
-            const progressBar = document.getElementById('progress-bar');
-            const counterNumbers = document.getElementById('counter-numbers');
-            
-            // Update counter text
-            counterNumbers.textContent = `${count}/${MEMBER_LIMIT}`;
-            
-            // Update progress bar width with animation
-            const percentage = (count / MEMBER_LIMIT) * 100;
-            setTimeout(() => {
-                progressBar.style.width = `${percentage}%`;
-            }, 500);
-            
-            // Update form button text based on availability
-            const submitBtn = document.querySelector('.submit-btn');
-            if (count >= MEMBER_LIMIT) {
-                submitBtn.textContent = 'Join the Waitlist';
-            }
-        }
-        
-        // Form submission
-        document.getElementById('waitlist-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            
-            // Prepare data for API
-            const formData = {
-                name: name,
-                email: email,
-                timestamp: new Date().toISOString(),
-                isWaitlisted: memberCount >= MEMBER_LIMIT
-            };
-            
-            // Send data to backend
-            submitSignup(formData);
-        });
-        
-        // Submit signup to backend API
-        function submitSignup(formData) {
-            fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
-                
-                // Update count with the one returned from the server
-                if (data.newCount !== undefined) {
-                    memberCount = data.newCount;
-                    updateCounterDisplay(memberCount);
-                }
-                
-                // Show appropriate message
-                if (data.isWaitlisted) {
-                    showWaitlistMessage();
-                } else {
-                    showSuccessMessage();
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('There was an error submitting your information. Please try again.');
-            });
-        }
-        
-        // Show success message
-        function showSuccessMessage() {
-            document.getElementById('waitlist-form').style.display = 'none';
-            document.getElementById('success-message').style.display = 'block';
-            document.getElementById('waitlist-message').style.display = 'none';
-        }
-        
-        // Show waitlist message
-        function showWaitlistMessage() {
-            document.getElementById('waitlist-form').style.display = 'none';
-            document.getElementById('success-message').style.display = 'none';
-            document.getElementById('waitlist-message').style.display = 'block';
         }
         
         // Scroll animations with GSAP
